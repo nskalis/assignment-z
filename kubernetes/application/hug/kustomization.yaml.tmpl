@@ -1,0 +1,10 @@
+resources:
+  - hug-namespace.yaml
+  - hug-resourcequota.yaml
+  - hug-deployment.yaml
+  - hug-service.yaml
+
+images:
+  - name: kustomize-container-image-registry/hug
+    newName: ${CONTAINER_IMAGE_REGISTRY}/hug
+    newTag: ${GIT_COMMIT_HASH_SHORT}

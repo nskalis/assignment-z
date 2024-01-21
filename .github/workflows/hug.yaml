@@ -1,0 +1,78 @@
+name: hug 🐳
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "application/hug/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "application/hug/**"
+
+env: 
+  AWS_REGION: eu-north-1
+  AWS_KUBE_CLUSTER_NAME: labs-z-eks
+
+jobs:
+  # note: another job (with a strategy of fail-fast) running a test suite against the application is assumed to be running here.
+  # testing:
+  #   runs-on: ubuntu-latest
+  #   steps: []
+
+  rollout:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/master'
+    # needs:
+    #   - testing
+    steps:
+      - name: read git commit hash
+        id: git-commit
+        uses: prompt/actions-commit-hash@v2
+
+      - name: git checkout repository
+        uses: actions/checkout@v4
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: login to amazon ecr container image repository
+        id: login-container-image-repo-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: build and push container image
+        id: container-image-docker
+        env:
+          CONTAINER_IMAGE_REGISTRY: ${{ steps.login-container-image-repo-ecr.outputs.registry }}
+          GIT_COMMIT_HASH_SHORT: ${{ steps.git-commit.outputs.short }}
+        run: |
+          cd application/hug/go
+          docker buildx build  \
+          --tag ${{ env.CONTAINER_IMAGE_REGISTRY }}/hug:latest  \
+          --tag ${{ env.CONTAINER_IMAGE_REGISTRY }}/hug:${{ env.GIT_COMMIT_HASH_SHORT }}  \
+          --file Dockerfile .
+          docker push ${{ env.CONTAINER_IMAGE_REGISTRY }}/hug:latest
+          docker push ${{ env.CONTAINER_IMAGE_REGISTRY }}/hug:${{ env.GIT_COMMIT_HASH_SHORT }}
+
+      - name: update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.AWS_KUBE_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: apply kubernetes manifests
+        env:
+          CONTAINER_IMAGE_REGISTRY: ${{ steps.login-container-image-repo-ecr.outputs.registry }}
+          GIT_COMMIT_HASH_SHORT: ${{ steps.git-commit.outputs.short }}
+        run: |
+          cd kubernetes
+          export CONTAINER_IMAGE_REGISTRY=${{ env.CONTAINER_IMAGE_REGISTRY }}
+          export GIT_COMMIT_HASH_SHORT=${{ env.GIT_COMMIT_HASH_SHORT }}
+          envsubst < application/hug/kustomization.yaml.tmpl > application/hug/kustomization.yaml
+          kubectl kustomize application/hug | kubectl apply -f -
+          rm application/hug/kustomization.yaml
+          

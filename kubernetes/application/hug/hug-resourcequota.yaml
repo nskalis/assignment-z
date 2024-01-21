@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  labels:
+    app: hug-resourcequota
+  name: hug-resourcequota
+  namespace: hug
+spec:
+  hard:
+    requests.memory: 1Gi
+    limits.memory: 2Gi
