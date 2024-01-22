@@ -5,6 +5,7 @@ module "eks" {
   cluster_version                = var.kube_version
   cluster_enabled_log_types      = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   cluster_endpoint_public_access = true
+  cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]  # todo: 
   create_kms_key                 = false
   cluster_encryption_config = {
     resources        = ["secrets"]
@@ -16,7 +17,6 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type               = "AL2_x86_64"
     instance_types         = var.kube_nodes_types
-    vpc_security_group_ids = [aws_security_group.additional.id]
     iam_role_additional_policies = {
       additional = aws_iam_policy.additional.arn
     }
@@ -34,63 +34,6 @@ module "eks" {
 
       tags = var.labels
     }
-  }
-
-  cluster_security_group_additional_rules = {
-    ingress_nodes_ephemeral_ports_tcp = {
-      description                = "nodes on ephemeral ports"
-      protocol                   = "tcp"
-      from_port                  = 1025
-      to_port                    = 65535
-      type                       = "ingress"
-      source_node_security_group = true
-    }
-    ingress_source_security_group_id = {
-      description              = "ingress from another computed security group"
-      protocol                 = "tcp"
-      from_port                = 22
-      to_port                  = 22
-      type                     = "ingress"
-      source_security_group_id = aws_security_group.additional.id
-    }
-  }
-  node_security_group_additional_rules = {
-    ingress_self_all = {
-      description = "node to node all ports/protocols"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      self        = true
-    }
-    ingress_source_security_group_id = {
-      description              = "ingress from another computed security group"
-      protocol                 = "tcp"
-      from_port                = 22
-      to_port                  = 22
-      type                     = "ingress"
-      source_security_group_id = aws_security_group.additional.id
-    }
-  }
-
-  tags = var.labels
-}
-
-resource "aws_security_group" "additional" {
-  name        = "from-private-networks"
-  description = "from private networks (ssh)"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "from private networks (ssh)"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16",
-    ]
   }
 
   tags = var.labels
