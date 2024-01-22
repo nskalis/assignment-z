@@ -160,6 +160,18 @@ I like warm hugs (3.0.1)
 ```
 # change directory to "kubernetes"
 kubectl delete application/hug
+```
+
+Or, adopting a GitOps style, propose some changes to the repository and modify `.github/workflows/hug.yaml` like this:
+
+```
+# from
+kubectl kustomize application/hug | kubectl apply -f -
+# to
+kubectl kustomize application/hug | kubectl delete -f -
+```
+
+```
 # change directory to "terraform"
 terraform destroy -var-file=environments/labs/proj.tfvars
 ```
