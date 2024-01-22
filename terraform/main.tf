@@ -21,7 +21,8 @@ module "eks" {
   kube_nodes_types          = var.kube_nodes_types
   kube_nodes_count          = var.kube_nodes_count
 
-  ec2_key_pair_name = module.keypair.ec2_key_pair_name
+  ec2_key_pair_name      = module.keypair.ec2_key_pair_name
+  vpc_security_group_ids = [module.jumphost.ssh_from_jumphost_sg]
 }
 
 module "keypair" {

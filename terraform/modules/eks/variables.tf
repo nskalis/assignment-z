@@ -30,7 +30,12 @@ variable "vpc_id" {
 
 variable "vpc_private_networks_list" {
   description = "list of vpc private networks"
-  type        = list(string)
+  type        = list(any)
+}
+
+variable "vpc_security_group_ids" {
+  description = "list of security group(s) to be assigned to the node group"
+  type        = list(any)
 }
 
 variable "kube_version" {

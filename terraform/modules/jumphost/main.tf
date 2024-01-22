@@ -1,10 +1,10 @@
-resource "aws_security_group" "to_jumphost" {
-  name        = "to-jumphost"
+resource "aws_security_group" "ssh_to_jumphost" {
+  name        = "ssh-to-jumphost"
   description = "from inet to jumphost (ssh)"
   vpc_id      = var.vpc_id
 
   ingress {
-    description = "from inet to jumphost (shh)"
+    description = "from inet to jumphost (ssh)"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -16,6 +16,22 @@ resource "aws_security_group" "to_jumphost" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = var.labels
+}
+
+resource "aws_security_group" "ssh_from_jumphost" {
+  name        = "ssh-from-jumphost"
+  description = "from jumphost to ec2 instances (ssh)"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description     = "from jumphost to ec2 instances (ssh)"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ssh_to_jumphost.id]
   }
 
   tags = var.labels
@@ -46,7 +62,7 @@ module "jumphost" {
   instance_type          = "t3.micro"
   key_name               = var.ec2_key_pair_name
   subnet_id              = var.jumphost_subnet_id
-  vpc_security_group_ids = [aws_security_group.to_jumphost.id]
+  vpc_security_group_ids = [aws_security_group.ssh_to_jumphost.id]
 
   tags = var.labels
 }
