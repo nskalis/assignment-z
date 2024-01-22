@@ -123,16 +123,13 @@ Setup your git repository: (click on) Settings ‣ Secrets and variables ‣ Act
 
 ### ⌨️ Usage
 
-Mark our AWS credentials to be passed to child processes:
-
-```
-export AWS_ACCESS_KEY_ID="<some-aws-access-key-id>"
-export AWS_SECRET_ACCESS_KEY="<some-aws-secret-access-key>"
-```
-
 * Create the AWS infrastructure:
 
 ```
+# mark our aws credentials to be passed to child processes
+export AWS_ACCESS_KEY_ID="<some-aws-access-key-id>"
+export AWS_SECRET_ACCESS_KEY="<some-aws-secret-access-key>"
+
 # change directory to "terraform"
 terraform init -reconfigure -var-file=environments/labs/proj.tfvars -backend-config=environments/labs/local.tfbackend
 
@@ -160,14 +157,13 @@ I like warm hugs (3.0.1)
 ```
 # change directory to "kubernetes"
 kubectl delete application/hug
-```
 
-Or, adopting a GitOps style, propose some changes to the repository and modify `.github/workflows/hug.yaml` like this:
+# OR, adopting a gitops style
+# propose some changes to the repository and modify .github/workflows/hug.yaml in the following way
 
-```
-# from
+# before
 kubectl kustomize application/hug | kubectl apply -f -
-# to
+# after
 kubectl kustomize application/hug | kubectl delete -f -
 ```
 
