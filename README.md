@@ -48,12 +48,13 @@ The resulted image size is 8MB.
 | hug | 990MB | 12.1MB | 9.85MB | 7.87MB |
 | hug.slim | 8.88MB | 7.96MB | 8.08MB | 7.87MB |
 
-In the Kubernetes context; `hug` runs in its own namespace with enforcing pod security admission (PSA), it is scaled to 2 replicas and it is exposed as a service of type `LoadBalancer`. Pods are spread across nodes based on their hostname using `topologySpreadConstraints` (in our example, we deploy 1 node on each availability zone).
+In the Kubernetes context; `hug` runs in its own namespace with enforcing pod security admission (PSA), it is scaled to 2 replicas and it is exposed as a service of type `ClusterIP`. Pods are spread across nodes based on their hostname using `topologySpreadConstraints` (in our example, we deploy 1 node on each availability zone). AWS Load Balancer Controller manages external access to the services in a cluster by defining an Ingress resource, which in turn provisions an ALB.
 
 #### 📚 References
 * ["Distroless" Container Images](https://github.com/GoogleContainerTools/distroless/blob/main/README.md)
 * [slimtoolkit](https://github.com/slimtoolkit/slim)
 * [Image security](https://aws.github.io/aws-eks-best-practices/security/docs/image/)
+* [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.6/#aws-load-balancer-controller)
 
 ### ⚒️ Infrastructure
 
@@ -144,18 +145,23 @@ terraform apply -var-file=environments/labs/proj.tfvars
 
 ```
 aws eks update-kubeconfig --name <aws-kube-cluster-name> --region <aws-region>
-
-kubectl -n hug get svc
-NAME          TYPE           CLUSTER-IP       EXTERNAL-IP                                                                PORT(S)          AGE
-hug-service   LoadBalancer   172.20.115.147   a7ce190b82a084080a60dc46c39c90f8-1208700454.eu-north-1.elb.amazonaws.com   8000:30827/TCP   2m2s
-
+```
+```
 kubectl -n hug get pods -o wide
 NAME                              READY   STATUS    RESTARTS   AGE     IP            NODE                                         NOMINATED NODE   READINESS GATES
-hug-deployment-58cc9f5f98-l4v6t   1/1     Running   0          2m14s   10.31.2.185   ip-10-31-2-159.eu-north-1.compute.internal   <none>           <none>
-hug-deployment-58cc9f5f98-q7bsr   1/1     Running   0          2m14s   10.31.1.72    ip-10-31-1-230.eu-north-1.compute.internal   <none>           <none>
+hug-deployment-59b9574b7b-f25kz   1/1     Running   0          3m11s   10.31.2.74    ip-10-31-2-212.eu-north-1.compute.internal   <none>           <none>
+hug-deployment-59b9574b7b-kl8xq   1/1     Running   0          3m11s   10.31.1.124   ip-10-31-1-33.eu-north-1.compute.internal    <none>           <none>
+
+kubectl -n hug get svc
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+hug-service   ClusterIP   172.20.40.171   <none>        8000/TCP   3m39s
+
+kubectl -n hug get ingresses
+NAME          CLASS   HOSTS   ADDRESS                                                              PORTS   AGE
+hug-ingress   alb     *       k8s-hug-hugingre-84c4942858-459038605.eu-north-1.elb.amazonaws.com   80      105s
 ```
 ```
-curl ac8da6da346c84f7385e61b1ec0e1452-473064592.eu-north-1.elb.amazonaws.com:8000
+curl k8s-hug-hugingre-84c4942858-459038605.eu-north-1.elb.amazonaws.com
 I like warm hugs (3.0.1)
 ```
 
