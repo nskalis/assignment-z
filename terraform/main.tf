@@ -25,6 +25,20 @@ module "eks" {
   vpc_security_group_ids = [module.jumphost.ssh_from_jumphost_sg]
 }
 
+module "lbc" {
+  source      = "./modules/lbc"
+  environment = var.environment
+  proj_name   = var.proj_name
+  labels      = local.common_tags
+
+  aws_region                         = var.aws_region
+  vpc_id                             = module.vpc.vpc_id
+  cluster_name                       = module.eks.cluster_name
+  cluster_endpoint                   = module.eks.cluster_endpoint
+  cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
+  oidc_provider_arn                  = module.eks.oidc_provider_arn
+}
+
 module "keypair" {
   source      = "./modules/keypair"
   environment = var.environment

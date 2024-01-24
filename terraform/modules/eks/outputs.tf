@@ -53,6 +53,16 @@ output "node_security_group_id" {
   value       = module.eks.node_security_group_id
 }
 
+output "oidc_provider" {
+  description = "open id connect issuer url without the scheme"
+  value       = module.eks.oidc_provider
+}
+
+output "oidc_provider_arn" {
+  description = "open id connect provider arn"
+  value       = module.eks.oidc_provider_arn
+}
+
 output "cluster_iam_role_name" {
   description = "eks cluster iam role name"
   value       = module.eks.cluster_iam_role_name
