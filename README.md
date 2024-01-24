@@ -1,4 +1,4 @@
-# Hi 🙌
+Hi there 🙌
 
 The solution to the task of deploying an application in Kubernetes using AWS infrastructure is described in the following sections. We'll start with navigating the project's structure, then mention the application's characteristics, how the AWS infrastructure looks like and do a walk-through of the application's deployment. Next, the usage guidelines are described, followed by the requested open discussion points.
 
@@ -48,7 +48,7 @@ The resulted image size is 8MB.
 | hug | 990MB | 12.1MB | 9.85MB | 7.87MB |
 | hug.slim | 8.88MB | 7.96MB | 8.08MB | 7.87MB |
 
-In the Kubernetes context; `hug` runs in its own namespace with enforcing pod security admission (PSA), it is scaled to 2 replicas and it is exposed as a service of type `LoadBalancer`.
+In the Kubernetes context; `hug` runs in its own namespace with enforcing pod security admission (PSA), it is scaled to 2 replicas and it is exposed as a service of type `LoadBalancer`. Pods are spread across nodes based on their hostname using `topologySpreadConstraints` (in our example, we deploy 1 node on each availability zone).
 
 #### 📚 References
 * ["Distroless" Container Images](https://github.com/GoogleContainerTools/distroless/blob/main/README.md)
@@ -85,6 +85,7 @@ tfsec .
 * [Best practices for using Terraform](https://cloud.google.com/docs/terraform/best-practices-for-terraform#variables)
 * [Security groups](https://aws.github.io/aws-eks-best-practices/security/docs/network/#security-groups)
 * [Amazon EKS security group requirements and considerations](https://docs.aws.amazon.com/eks/latest/userguide/sec-group-reqs.html)
+* [Network Connectivity](https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/network_connectivity.md)
 
 ### 🍰 Deployment
 
@@ -143,9 +144,15 @@ terraform apply -var-file=environments/labs/proj.tfvars
 
 ```
 aws eks update-kubeconfig --name <aws-kube-cluster-name> --region <aws-region>
+
 kubectl -n hug get svc
-NAME          TYPE           CLUSTER-IP      EXTERNAL-IP                                                               PORT(S)          AGE
-hug-service   LoadBalancer   172.24.17.229   ac8da6da346c84f7385e61b1ec0e1452-473064592.eu-north-1.elb.amazonaws.com   8000:31923/TCP   2m16s
+NAME          TYPE           CLUSTER-IP       EXTERNAL-IP                                                                PORT(S)          AGE
+hug-service   LoadBalancer   172.20.115.147   a7ce190b82a084080a60dc46c39c90f8-1208700454.eu-north-1.elb.amazonaws.com   8000:30827/TCP   2m2s
+
+kubectl -n hug get pods -o wide
+NAME                              READY   STATUS    RESTARTS   AGE     IP            NODE                                         NOMINATED NODE   READINESS GATES
+hug-deployment-58cc9f5f98-l4v6t   1/1     Running   0          2m14s   10.31.2.185   ip-10-31-2-159.eu-north-1.compute.internal   <none>           <none>
+hug-deployment-58cc9f5f98-q7bsr   1/1     Running   0          2m14s   10.31.1.72    ip-10-31-1-230.eu-north-1.compute.internal   <none>           <none>
 ```
 ```
 curl ac8da6da346c84f7385e61b1ec0e1452-473064592.eu-north-1.elb.amazonaws.com:8000
@@ -178,6 +185,7 @@ terraform destroy -var-file=environments/labs/proj.tfvars
 
 * Make the EKS Cluster Endpoint private. The latter can be achieved when using [self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners). 
 	* It may worth mentioning that; although the IP ranges that [Azure/GitHub](https://www.microsoft.com/en-us/download/details.aspx?id=56519) publishes don't mention (yet) the GitHub Actions service (think of it as the equivalent of [this](https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html) in AWS terms), the public EKS Cluster Endpoint can be secured by applying a security group that allows only [GitHub Actions runner's public IP address](https://github.com/haythem/public-ip).
+* Use Karpenter's topology key `topology.kubernetes.io/zone` to schedule pods across different availability zones.
 * Using [ssm-agent-daemonset-installer](https://github.com/aws-samples/ssm-agent-daemonset-installer) to install the SSM agent is a GitOps friendly way to use stock EKS optimised AMIs, as an alternative to installing the SSM agent or to a jumphost. 
 * Enable resource validation and audit functionality with [Gatekeeper](https://github.com/open-policy-agent/gatekeeper/tree/master/demo/agilebank), for example; all containers must have compute resource limits, allow containers only from trusted container registries, etc.
 * Sign OCI container images with [Sigstore Cosign](https://github.com/sigstore/cosign).

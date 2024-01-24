@@ -27,7 +27,7 @@ module "eks" {
     workers = {
       instance_types = var.kube_nodes_types
       min_size       = 1
-      desired_size   = 1
+      desired_size   = 2  # todo: 
       max_size       = var.kube_nodes_count
       update_config = {
         max_unavailable = 1
