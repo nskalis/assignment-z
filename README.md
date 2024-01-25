@@ -169,7 +169,7 @@ I like warm hugs (3.0.1)
 
 ```
 # change directory to "kubernetes"
-kubectl delete application/hug
+kubectl delete -f application/hug
 
 # OR, adopting a gitops style
 # propose some changes to the repository and modify .github/workflows/hug.yaml in the following way
