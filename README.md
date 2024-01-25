@@ -48,7 +48,7 @@ The resulted image size is 8MB.
 | hug | 990MB | 12.1MB | 9.85MB | 7.87MB |
 | hug.slim | 8.88MB | 7.96MB | 8.08MB | 7.87MB |
 
-In the Kubernetes context; `hug` runs in its own namespace with enforcing pod security admission (PSA), it is scaled to 2 replicas and it is exposed as a service of type `ClusterIP`. Pods are spread across nodes based on their hostname using `topologySpreadConstraints` (in our example, we deploy 1 node on each availability zone). AWS Load Balancer Controller manages external access to the services in a cluster by defining an Ingress resource, which in turn provisions an ALB.
+In the Kubernetes context; `hug` runs using a service account in its own namespace with enforcing pod security admission (PSA), it is scaled to 2 replicas and it is exposed as a service of type `ClusterIP`. Pods are spread across nodes based on their hostname using `topologySpreadConstraints` (in our example, we deploy 1 node on each availability zone). AWS Load Balancer Controller manages external access to the services in a cluster by defining an Ingress resource, which in turn provisions an ALB.
 
 #### 📚 References
 * ["Distroless" Container Images](https://github.com/GoogleContainerTools/distroless/blob/main/README.md)

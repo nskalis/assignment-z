@@ -31,12 +31,19 @@ module "lbc" {
   proj_name   = var.proj_name
   labels      = local.common_tags
 
-  aws_region                         = var.aws_region
-  vpc_id                             = module.vpc.vpc_id
-  cluster_name                       = module.eks.cluster_name
-  cluster_endpoint                   = module.eks.cluster_endpoint
-  cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
-  oidc_provider_arn                  = module.eks.oidc_provider_arn
+  aws_region        = var.aws_region
+  vpc_id            = module.vpc.vpc_id
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_arn = module.eks.oidc_provider_arn
+}
+
+module "hug" {
+  source      = "./modules/hug"
+  environment = var.environment
+  proj_name   = var.proj_name
+  labels      = local.common_tags
+
+  oidc_provider_arn = module.eks.oidc_provider_arn
 }
 
 module "keypair" {

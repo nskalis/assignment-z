@@ -23,21 +23,6 @@ variable "labels" {
   type        = map(any)
 }
 
-variable "aws_region" {
-  description = "aws region name where resources will be deployed"
-  type        = string
-}
-
-variable "vpc_id" {
-  description = "vpc id"
-  type        = string
-}
-
-variable "cluster_name" {
-  description = "eks cluster name"
-  type        = string
-}
-
 variable "oidc_provider_arn" {
   description = "open id connect provider arn"
   type        = string
