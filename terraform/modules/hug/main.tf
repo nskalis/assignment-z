@@ -11,6 +11,8 @@ resource "kubernetes_namespace" "hug" {
 }
 
 resource "kubernetes_service_account" "hug" {
+  depends_on = [kubernetes_namespace.hug]
+  
   metadata {
     name      = "hug"
     namespace = kubernetes_namespace.hug.metadata[0].name

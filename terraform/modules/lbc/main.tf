@@ -38,10 +38,6 @@ resource "helm_release" "lbc" {
     name  = "clusterName"
     value = var.cluster_name
   }
-  set {
-    name  = "replicaCount"
-    value = 1
-  }
 
   set {
     name  = "serviceAccount.create"
