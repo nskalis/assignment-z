@@ -191,7 +191,7 @@ terraform destroy -var-file=environments/labs/proj.tfvars
 
 * Make the EKS Cluster Endpoint private. The latter can be achieved when using [self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners). 
 	* It may worth mentioning that; although the IP ranges that [Azure/GitHub](https://www.microsoft.com/en-us/download/details.aspx?id=56519) publishes don't mention (yet) the GitHub Actions service (think of it as the equivalent of [this](https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html) in AWS terms), the public EKS Cluster Endpoint can be secured by applying a security group that allows only [GitHub Actions runner's public IP address](https://github.com/haythem/public-ip).
-* Use Karpenter's topology key `topology.kubernetes.io/zone` to schedule pods across different availability zones.
+* Ensure that the EKS cluster itself and the Kubernetes provider resources can be managed with separate apply operations.
 * Using [ssm-agent-daemonset-installer](https://github.com/aws-samples/ssm-agent-daemonset-installer) to install the SSM agent is a GitOps friendly way to use stock EKS optimised AMIs, as an alternative to installing the SSM agent or to a jumphost. 
 * Enable resource validation and audit functionality with [Gatekeeper](https://github.com/open-policy-agent/gatekeeper/tree/master/demo/agilebank), for example; all containers must have compute resource limits, allow containers only from trusted container registries, etc.
 * Sign OCI container images with [Sigstore Cosign](https://github.com/sigstore/cosign).
